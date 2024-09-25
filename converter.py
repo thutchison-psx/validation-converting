@@ -64,7 +64,7 @@ def convert_validations(pdf_path, output_path, num_of_validations):
             ## Define blankText
             blankText = PageObject.create_blank_page(almost, 100, 100)
             ## Merge blankText with textPage
-            blankText.merge_translated_page(holder.pages[len(holder.pages)-1], -5, -2)
+            blankText.merge_page(holder.pages[len(holder.pages)-1])
             ## Define blankText coordinates to show textPage
             blankText.mediabox.upper_left = [-17.5+208*(pagesAdded%3), height-215-79*(rowCount%10)]
             blankText.mediabox.lower_right = [147.5+208*(pagesAdded%3), height-33-79*(rowCount%10)]
