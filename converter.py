@@ -1,4 +1,4 @@
-from pypdf import PdfReader, PdfWriter
+from pypdf import PageObject, PdfReader, PdfWriter
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
@@ -16,6 +16,8 @@ def convert_validations(pdf_path, output_path, num_of_validations):
     ## Assigning Reader and Writer
     pdf = PdfReader(pdf_path)
     writer = PdfWriter()
+    holder = PdfWriter()
+    almost = PdfWriter()
     ## Construct the file name (original download name + "-lottery" at the end)
     filename = os.path.basename(pdf_path)
     file = os.path.splitext(filename)
@@ -26,17 +28,59 @@ def convert_validations(pdf_path, output_path, num_of_validations):
     while pageCount < len(pdf.pages):
         print("On page ", pageCount+1)
         page = pdf.pages[pageCount]
+        qrPage = pdf.pages[pageCount]
+        textPage = pdf.pages[pageCount]
         
         ## Defining height for validations
         height = page.mediabox.height
-        while pagesAdded < num_of_validations or pagesAdded < 30:
-            pagesAdded += 1
+        pagesAdded = 0
+        rowCount = 0
+        while pagesAdded < num_of_validations and pagesAdded < 30:
+            
             ## Defining upper left and lower right hand corners of each validations
-            page.mediabox.upper_left = [10+208*(pagesAdded%3), height-90-79*(pagesAdded%10)]
-            page.mediabox.lower_right = [175+208*(pagesAdded%3), height-30-79*(pagesAdded%10)]
+            # page.mediabox.upper_left = [10+208*(pagesAdded%3), height-90-79*(rowCount%10)]
+            # page.mediabox.lower_right = [175+208*(pagesAdded%3), height-30-79*(rowCount%10)]
 
-            ## Add newly defined "page" (validation) to the new pdf
-            writer.add_page(page)
+            ## Get QR Code coordinates
+            qrPage.mediabox.upper_left = [125+208*(pagesAdded%3), height-90-79*(rowCount%10)]
+            qrPage.mediabox.lower_right = [175+208*(pagesAdded%3), height-30-79*(rowCount%10)]
+
+            ## Add to holder writer
+            holder.add_page(qrPage)
+
+            ## Define blankQR
+            blankQR = PageObject.create_blank_page(almost, 100, 100)
+            ## Merge blankQR with qrPage
+            blankQR.merge_page(holder.pages[len(holder.pages)-1])
+            ## Define blankQR to put qrPage on blankQR page
+            blankQR.mediabox.upper_left = [35+208*(pagesAdded%3), height-130-79*(rowCount%10)]
+            blankQR.mediabox.lower_right = [265+208*(pagesAdded%3), height+100-79*(rowCount%10)]
+
+            ## Get Text coordinates
+            textPage.mediabox.upper_left = [10+208*(pagesAdded%3), height-90-79*(rowCount%10)]
+            textPage.mediabox.lower_right = [125+208*(pagesAdded%3), height+40-79*(rowCount%10)]
+            ## Add textPage to holder writer
+            holder.add_page(textPage)
+            ## Define blankText
+            blankText = PageObject.create_blank_page(almost, 100, 100)
+            ## Merge blankText with textPage
+            blankText.merge_translated_page(holder.pages[len(holder.pages)-1], -5, -2)
+            ## Define blankText coordinates to show textPage
+            blankText.mediabox.upper_left = [-17.5+208*(pagesAdded%3), height-215-79*(rowCount%10)]
+            blankText.mediabox.lower_right = [147.5+208*(pagesAdded%3), height-33-79*(rowCount%10)]
+
+            ## Bring blankQR onto blankText and place it correctly
+            blankText.merge_translated_page(blankQR, -85, -90)
+
+            ## Add page to writer 
+            writer.add_page(blankText)
+
+            pagesAdded += 1
+            if pagesAdded % 3 == 0:
+                rowCount += 1
+
+            blankQR.clear()
+            blankText.clear()
             print("Pages Added So Far ", pagesAdded)
         num_of_validations = num_of_validations - 30
         pageCount+= 1
@@ -53,10 +97,9 @@ def convert_validations(pdf_path, output_path, num_of_validations):
 ##################################################################################
 #
 #
-# MAKE SURE YOU PRINT WITH PAPER SIZE REGULAR 82.5 x 82.5 
-# 
-#                   DO NOT USE 
-#           THE ROLL OR ROLL SHORT 82.5 x 82.5
+#  - MAKE SURE YOU PRINT WITH PAPER SIZE REGULAR 82.5 x 82.5 DO NOT USE 
+#   THE ROLL OR ROLL SHORT 82.5 x 82.5
+#  - USE PORTRAIT MODE WHEN PRINTING
 #
 #
 ##################################################################################
@@ -88,13 +131,13 @@ def submit():
         return
 
     # Testing to ensure correct paths and beginning conversion
-    try:
-        print(f"Input PDF: {pdf_path}")
-        print(f"Output Folder: {output_path}")
-        print(f"Integer Input: {num_of_validations}")
-        convert_validations(pdf_path, output_path, num_of_validations)
-    except ValueError:
-        messagebox.showerror("Invalid Input", "Please enter a valid integer.")
+    # try:
+    print(f"Input PDF: {pdf_path}")
+    print(f"Output Folder: {output_path}")
+    print(f"Integer Input: {num_of_validations}")
+    convert_validations(pdf_path, output_path, num_of_validations)
+    # except ValueError:
+    #     messagebox.showerror("Invalid Input", "Please enter a valid integer.")
 
 # Create the main window
 root = tk.Tk()
