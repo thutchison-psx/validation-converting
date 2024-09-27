@@ -1,3 +1,4 @@
+import time
 from pypdf import PageObject, PdfReader, PdfWriter
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -36,6 +37,8 @@ def convert_validations(pdf_path, output_path, num_of_validations):
         pagesAdded = 0
         rowCount = 0
         while pagesAdded < num_of_validations and pagesAdded < 30:
+            print("=====================================================")
+            print("Start page: ", time.perf_counter())
             
             ## Defining upper left and lower right hand corners of each validations
             # page.mediabox.upper_left = [10+208*(pagesAdded%3), height-90-79*(rowCount%10)]
@@ -82,6 +85,7 @@ def convert_validations(pdf_path, output_path, num_of_validations):
             blankQR.clear()
             blankText.clear()
             print("Pages Added So Far ", pagesAdded)
+            print("End page: ", time.perf_counter())
         num_of_validations = num_of_validations - 30
         pageCount+= 1
     if (num_of_validations <= 0):

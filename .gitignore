@@ -1,2 +1,5 @@
 output/
 validations/
+build/
+dist/
+converter.spec
